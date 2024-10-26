@@ -1,0 +1,27 @@
+/* Card.module.css */
+.card {
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+    background-color: white;
+    width: 200px; /* Ajustez la largeur selon vos besoins */
+    margin: 10px; /* Ajoutez de l'espace entre les cartes */
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.cardImage {
+    width: 100%;
+    height: auto;
+}
+
+.cardTitle {
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+}

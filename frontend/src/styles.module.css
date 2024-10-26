@@ -1,0 +1,108 @@
+/* Updated styles.module.css */
+.container {
+  display: flex;
+  height: 100vh; /* Full height */
+  flex-direction: row; /* Horizontal layout */
+}
+
+.header {
+  position: fixed; /* Fixed header */
+  top: 0;
+  background-color: #f4f4f4; /* Background color for the header */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10; /* Ensure header stays on top */
+  left: -0.04cm;
+  right:  -0.10cm;
+}
+
+.header img {
+  max-height: 230px; /* Set the max height of the header image */
+  width: 100%; /* Full width */
+  object-fit: cover; /* Maintain aspect ratio */
+  
+}
+
+
+.sidebar {
+  width: 250px; /* Sidebar width */
+  background-color: #ffc75f		; /* Sidebar background color */
+  padding: 1rem;
+  border-right: 1px solid #ddd;
+  overflow-y: auto; /* Allow scrolling if necessary */
+  position: fixed; /* Fix sidebar to the left */
+  top: 220px; /* Position below the header */
+  bottom: 0; /* Stretch to the bottom of the viewport */
+  left: -0.02cm;
+
+}
+
+.collectionList {
+  margin-top: 1rem;
+}
+
+.collectionItem {
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f9f9f9; /* Background for collection items */
+  border-radius: 8px; /* Rounded corners */
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s; /* Transition effects */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.collectionItem:hover {
+  background-color: #e1e1e1; /* Highlight on hover */
+  transform: translateY(-2px); /* Slight lift effect */
+}
+
+.active {
+  background-color: #007bff; /* Active item color */
+  color: white;
+}
+
+.badge {
+  background-color: #007bff;
+  color: white;
+  border-radius: 12px;
+  padding: 0.3em 0.6em;
+  font-size: 0.8em;
+}
+
+.mainContent {
+  
+  padding: 1rem;
+  padding-top: 2rem; /* Ensure content does not overlap with header */
+  height: calc(100vh - 150px); /* Height minus header height */
+  display: flex;
+}
+
+.cardTab {
+  flex-grow: 1; /* Take up remaining space */
+  margin-top: 1rem; /* Margin for aesthetics */
+  padding: 1rem; /* Padding inside the card tab */
+  background-color: #fff; /* Background color for the card area */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.cardGridContent{
+  width: 70vw;
+  padding-top: 5rem;
+ 
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 6rem;
+}
+
+h4 {
+  margin-bottom: 1rem;
+}

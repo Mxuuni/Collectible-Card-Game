@@ -1,0 +1,34 @@
+{
+  "name": "collectible-card-game-daar",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ghivert/touche-coule.git"
+  },
+  "author": "Guillaume Hivert <hivert.is.coming@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "yarn --cwd contracts install && yarn --cwd frontend install",
+    "dev": "concurrently -c \"blue.bold,red.bold\" --names \"ethereum,frontend\" \"yarn --cwd contracts dev\" \"yarn --cwd frontend dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^7.5.0",
+    "hardhat-typechain": "^0.3.5"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.1.0",
+    "axios": "^1.7.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.4",
+    "express": "^4.21.1"
+  },
+  "description": "Welcome to the DAAR project. The idea will be to implement a Collectible Card Game\r in a decentralized way, on Ethereum. This will force you to iterate through the creation\r of CCG cards as NFT, create a marketplace for players to exchange NFT, and run a frontend to create collections.",
+  "bugs": {
+    "url": "https://github.com/ghivert/touche-coule/issues"
+  },
+  "homepage": "https://github.com/ghivert/touche-coule#readme",
+  "keywords": []
+}
