@@ -61,6 +61,7 @@ const useWallet = () => {
 export const App = () => {
     const wallet = useWallet();
     const [collections, setCollections] = useState<Collection[]>([]);
+    const [collectionsLoaded, setCollectionsLoaded] = useState(false); // Drapeau pour éviter le rechargement
     const [cards, setCards] = useState<{ [key: number]: Card[] }>({});
     const [boosters, setBoosters] = useState<Booster[]>([]);
     const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
@@ -160,8 +161,10 @@ export const App = () => {
     };
 
     useEffect(() => {
-        fetchCollections();
-        fetchBoosters();
+        if (wallet) {
+            fetchCollections();
+            fetchBoosters();
+        }
     }, [wallet]);
 
     const claimBooster = async (boosterId: string) => {
@@ -173,6 +176,7 @@ export const App = () => {
         try {
             // Vérifiez si le booster est déjà réclamé
             const boosterDetailsBefore = await wallet.contract.getBoosterDetails(boosterId);
+    
             if (boosterDetailsBefore.owner !== ethers.constants.AddressZero) {
                 console.log(`Le booster ${boosterId} a déjà été réclamé par ${boosterDetailsBefore.owner}`);
                 alert("Ce booster a déjà été réclamé.");
@@ -194,16 +198,13 @@ export const App = () => {
             const boosterDetailsAfter = await wallet.contract.getBoosterDetails(boosterId);
             console.log("Détails après réclamation:", boosterDetailsAfter);
     
-            // Extraction des cartes du booster
-            const cardsInBooster: Card[] = boosterDetailsAfter.cards.map((cardData) => ({
-                id: cardData.cardId,
-                title: cardData.description,
-                image: cardData.imageUrl,
-            }));
-    
             const claimedBooster: Booster = {
                 boosterId,
-                cards: cardsInBooster,
+                cards: boosterDetailsAfter.cards.map((cardData) => ({
+                    id: cardData.cardId,
+                    title: cardData.description,
+                    image: cardData.imageUrl,
+                })),
                 owner: boosterDetailsAfter.owner,
             };
     
@@ -216,14 +217,18 @@ export const App = () => {
             setSelectedBooster(claimedBooster);
         } catch (error: any) {
             console.error("Erreur lors de la réclamation du booster:", error);
-            
-            if (error.message.includes("Booster already claimed")) {
-                alert("Ce booster a déjà été réclamé.");
+    
+            // Affichage de messages d'erreur basés sur la nature de l'erreur
+            if (error.reason) {
+                alert(`Erreur lors de la réclamation du booster: ${error.reason}`);
+            } else if (error.message && error.message.includes("cannot estimate gas")) {
+                alert("Erreur : Impossible d'estimer le gaz. La carte est peut-être déjà possédée ou la transaction est invalide.");
             } else {
-                alert(`Erreur lors de la réclamation du booster: ${error.message}`);
+                alert("Une erreur inconnue est survenue.");
             }
         }
     };
+    
     
 
     return (
@@ -231,7 +236,7 @@ export const App = () => {
             <header className={styles.header}>
                 <img src={pokemonImage} alt="Pokémon Header" />
             </header>
-            
+
             <aside className={styles.sidebar}>
                 <h2>Menu</h2>
                 <button onClick={() => setShowBoosters(false)} className={!showBoosters ? styles.activeButton : ''}>
@@ -243,7 +248,7 @@ export const App = () => {
                 <div className={styles.collectionList}>
                     {!showBoosters ? (
                         collections.map((collection) => (
-                            <div 
+                            <div
                                 key={collection.id}
                                 className={`${styles.collectionItem} ${selectedCollectionId === collection.id ? styles.active : ''}`}
                                 onClick={() => setSelectedCollectionId(collection.id)}
@@ -254,7 +259,7 @@ export const App = () => {
                     ) : null}
                 </div>
             </aside>
-
+            
             <main className={styles.mainContent}>
                 {selectedCollectionId !== null && !showBoosters && (
                     <div>
@@ -267,48 +272,29 @@ export const App = () => {
                     </div>
                 )}
 
-{showBoosters && (
-    <div>
-        <h3>Boosters</h3>
-        <div className={styles.boosterList}>
-            {boosters.map((booster) => (
-                <div key={booster.boosterId} className={styles.boosterItem}>
-                    <img 
-                        src={boosterImage} 
-                        alt={`Booster ${booster.boosterId}`} 
-                        className={styles.boosterImage} 
-                    />
-                    <div className={styles.boosterInfo}>
-                        <h4 className={styles.boosterTitle}>Booster N° {booster.boosterId}</h4>
-                        <p className={styles.boosterOwner}>Owned by: {booster.owner}</p>
-                        <button 
-                            className={styles.claimButton} 
-                            onClick={() => claimBooster(booster.boosterId)}
-                        >
-                            Réclamer
-                        </button>
-                    </div>
-                </div>
-            ))}
-        </div>
-    </div>
-)}
-
-
-
-                {selectedBooster && (
+                {showBoosters && (
                     <div>
-                        <h3>Détails du Booster</h3>
-                        <h4>{selectedBooster.boosterId}</h4>
-                        <p>Propriétaire: {selectedBooster.owner}</p>
-                        <div className={styles.cardGrid}>
-                            {selectedBooster.cards.length > 0 ? (
-                                selectedBooster.cards.map((card) => (
-                                    <Card key={card.id} title={card.title} image={card.image} />
-                                ))
-                            ) : (
-                                <p>Aucune carte dans ce booster.</p>
-                            )}
+                        <h3>Boosters</h3>
+                        <div className={styles.boosterList}>
+                            {boosters.map((booster) => (
+                                <div key={booster.boosterId} className={styles.boosterItem}>
+                                    <img
+                                        src={boosterImage}
+                                        alt={`Booster ${booster.boosterId}`}
+                                        className={styles.boosterImage}
+                                    />
+                                    <div className={styles.boosterInfo}>
+                                        <h4 className={styles.boosterTitle}>Booster N° {booster.boosterId}</h4>
+                                        <p className={styles.boosterOwner}>Owned by: {booster.owner}</p>
+                                        <button
+                                            className={styles.claimButton}
+                                            onClick={() => claimBooster(booster.boosterId)}
+                                        >
+                                            Réclamer
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
@@ -316,5 +302,3 @@ export const App = () => {
         </div>
     );
 };
-
-export default App;

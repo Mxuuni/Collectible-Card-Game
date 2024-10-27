@@ -96,18 +96,50 @@ contract TCGCollection is ERC721URIStorage {
         boosterCount++;
     }
 
-    function claimBooster(string calldata boosterId) external {
-        Booster storage booster = boosters[boosterId];
-        require(booster.owner == address(0), "Booster already claimed");
+event BoosterClaimed(string boosterId, address owner);
+event BoosterNotClaimed(string reason);
 
-        booster.owner = msg.sender; // Assigner l'owner au booster
+function claimBooster(string calldata boosterId) external {
+    // Récupérer le booster
+    Booster storage booster = boosters[boosterId];
+    
+    // Vérifier si le booster existe
+    require(bytes(booster.boosterId).length != 0, "Booster does not exist");
+    
+    // Vérifier si le booster a déjà été réclamé
+    require(booster.owner == address(0), "Booster already claimed");
 
-        for (uint i = 0; i < booster.cards.length; i++) {
-            Card storage card = booster.cards[i];
-            card.owner = msg.sender; // Assigner le même owner à chaque carte dans le booster
-            mintCard(msg.sender, 0, card.cardId, card.imageUrl, card.description);
-        }
+    // Attribuer le booster au réclamant
+    booster.owner = msg.sender;
+
+    // Transférer chaque carte dans le booster au réclamant
+    for (uint i = 0; i < booster.cards.length; i++) {
+        Card storage card = booster.cards[i];
+
+        // Vérifier que la carte n'est pas déjà possédée
+        require(cardsMapping[card.cardId].owner == address(0), "Card already owned");
+
+        // Assigner la carte au réclamant
+        cardsMapping[card.cardId].owner = msg.sender;
+
+        // Mettre à jour la carte dans le mapping principal des cartes
+        cards[nextCardId] = Card({
+            cardId: card.cardId,
+            imageUrl: card.imageUrl,
+            description: card.description,
+            owner: msg.sender
+        });
+
+        // Incrémenter nextCardId pour chaque carte transférée
+        nextCardId++;
     }
+
+    // Émettre l'événement pour signaler que le booster a été réclamé
+    emit BoosterClaimed(boosterId, msg.sender);
+}
+
+
+
 
     function getBoosterOwner(string calldata boosterId) external view returns (address) {
         Booster storage booster = boosters[boosterId];
