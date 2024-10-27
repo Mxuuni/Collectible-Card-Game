@@ -11,25 +11,31 @@ interface PokemonCard {
 }
 
 // Fonction pour obtenir des cartes Pokémon aléatoires
-const getRandomPokemonCards = async (count: number): Promise<PokemonCard[]> => {
+const getRandomPokemonCards = async (count: number, usedCardIds: Set<string>): Promise<PokemonCard[]> => {
     try {
         const response = await axios.get(`https://api.pokemontcg.io/v2/cards`, {
             headers: {
                 'X-Api-Key': POKEMON_API_KEY
             },
             params: {
-                pageSize: count,
+                pageSize: count * 2, // Pour avoir une chance d'obtenir assez de cartes uniques
                 orderBy: 'random'
             }
         });
 
-        const cards = response.data.data.map((card: any) => ({
-            id: card.id, // ID de la carte depuis l'API
-            name: card.name, // Nom de la carte
-            imageUrl: card.images?.large || '', // URL de l'image de grande taille
+        const cards: PokemonCard[] = response.data.data.map((card: any) => ({
+            id: card.id,
+            name: card.name,
+            imageUrl: card.images?.large || '',
         }));
 
-        return cards;
+        // Filtrer les cartes pour éviter les doublons
+        const uniqueCards = cards.filter(card => !usedCardIds.has(card.id)).slice(0, count);
+        
+        // Ajouter les IDs des cartes utilisées à l'ensemble
+        uniqueCards.forEach(card => usedCardIds.add(card.id));
+
+        return uniqueCards;
     } catch (error) {
         console.error("Erreur lors de la récupération des cartes Pokémon:", error);
         throw error;
@@ -67,7 +73,7 @@ const deployer: DeployFunction = async hre => {
         const { name, cardCount } = collection;
 
         // Obtenir des cartes Pokémon aléatoires
-        const randomCards = await getRandomPokemonCards(cardCount);
+        const randomCards = await getRandomPokemonCards(cardCount, new Set());
 
         // Créer la collection sur la blockchain
         const createCollectionTx = await mainContract.registerNewCollection(name, cardCount);
@@ -87,7 +93,39 @@ const deployer: DeployFunction = async hre => {
         }
     }
 
-    console.log('Déploiement terminé.');
+ // Créer 4 boosters avec 5 cartes chacun
+const boosterCount = 3; // Nombre de boosters à créer
+const boosterCardCount = 5; // Nombre de cartes dans chaque booster
+const usedCardIds = new Set<string>(); // Ensemble pour suivre les IDs de cartes déjà utilisées
+
+// Récupérer des cartes suffisantes avant de créer les boosters
+const totalCardsNeeded = boosterCount * boosterCardCount;
+const randomCards = await getRandomPokemonCards(totalCardsNeeded, usedCardIds);
+
+for (let i = 1; i < boosterCount; i++) {
+    // Sélectionner les cartes pour le booster
+    const boosterCards = randomCards.slice(i * boosterCardCount, (i + 1) * boosterCardCount);
+    
+    // Vérifier si suffisamment de cartes ont été récupérées
+    if (boosterCards.length < boosterCardCount) {
+        console.error(`Aucune carte suffisante à inclure pour le booster ${i}`);
+        continue; // Passer au prochain booster si pas assez de cartes
+    }
+    
+    // Enregistrer le booster dans le contrat avec ID et owner null
+    const boosterId = i.toString(); // Utiliser l'index `i` comme ID du booster
+    const boosterName = `Booster ${boosterId}`; // Nommer le booster
+    const owner = ethers.constants.AddressZero; // Owner null (adresse zéro)
+
+    const boosterTx = await mainContract.createBooster(boosterId, boosterCards);
+    await boosterTx.wait();
+    console.log(`Booster ${boosterName} créé avec les cartes : ${boosterCards.map(card => card.id).join(', ')}`);
+}
+
+console.log('Déploiement terminé.');
+
+
+
 };
 
 export default deployer;

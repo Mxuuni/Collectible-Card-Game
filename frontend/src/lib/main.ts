@@ -3,14 +3,32 @@ import * as ethereum from './ethereum';
 import { contracts } from '@/contracts.json';
 
 // Définir le type pour le contrat Main
+export type Card = {
+    cardId: string;
+    imageUrl: string;
+    description: string;
+    owner: string;
+};
+
+export type Booster = {
+    boosterId: string;
+    cards: Card[];
+    owner: string;
+};
+
+// Mettre à jour le type pour le contrat Main
 export type Main = {
     registerNewCollection: (name: string, cardCount: number) => Promise<ethers.ContractTransaction>;
     getCollectionInfo: (collectionId: number) => Promise<[string, number]>;
     mintCard: (to: string, collectionId: number, tokenURI: string) => Promise<ethers.ContractTransaction>;
     getAllCollections: () => Promise<{ names: string[]; cardCounts: number[] }>;
-    getCardsInCollection: (collectionId: number) => Promise<{ cardId: string; imageUrl: string; description: string; owner: string; }[]>; // Ajoutez cette ligne
+    getCardsInCollection: (collectionId: number) => Promise<Card[]>; // Typage mis à jour
+    getBoosters: () => Promise<string[]>; // Assurez-vous que cette fonction existe dans le contrat
+    getCardsInBooster: (boosterId: string) => Promise<Card[]>; // Typage mis à jour
+    claimBooster: (boosterId: string) => Promise<ethers.ContractTransaction>;
+    getBoosterDetails: (boosterId: string) => Promise<Booster>; // Typage mis à jour
+    getBoosterIds: () => Promise<string[]>; // Ajoutez cette ligne
 };
-
 
 export const correctChain = () => {
     return 31337; // ID de la chaîne HardHat
